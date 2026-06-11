@@ -1,24 +1,22 @@
 {
-  "name": "MeriApp",
-  "short_name": "MeriApp",
-  "description": "Ye meri pehli PWA app hai",
+  "name": "My PWA App",
+  "short_name": "MyApp",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000",
-  "orientation": "portrait",
+  "description": "My Progressive Web App",
   "icons": [
     {
-      "src": "/public/icon-192.png"
+      "src": "/public/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "/public/icon-512.png"
+      "src": "/public/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png", 
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
