@@ -66,6 +66,7 @@
             color: #e94560;
         }
     </style>
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 <div class="app-container">
@@ -227,6 +228,10 @@
     // ابتدائی UI اپ ڈیٹ
     clearAll();
 </script>
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js');
+}
+</script>
 </body>
 </html>
