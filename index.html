@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK 3Patti Hack 2.0 </title>
+    <style>
+        body {
+            font-family: sans-serif; background-color: #1a1a2e; color: #ffffff;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; margin: 0; padding: 20px 0;
+        }
+        .app-container {
+            width: 100%; max-width: 420px; background-color: #16213e;
+            border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; color: #e94560; margin: 0; }
+        .win-lose-counter { display: flex; gap: 15px; }
+        .counter { background-color: #0f3460; padding: 8px 15px; border-radius: 10px; font-size: 16px; font-weight: bold; }
+        .prediction-seats { display: flex; justify-content: space-around; margin-bottom: 25px; min-height: 90px; }
+        .prediction-seat {
+            padding: 15px; border-radius: 10px; width: 45%; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        .prediction-seat .label { font-size: 14px; opacity: 0.8; }
+        .prediction-seat .seat-value { font-size: 36px; font-weight: bold; }
+        .prediction-seat .percentage { font-size: 16px; font-weight: bold; }
+        .prediction-seat .ai-status { font-size: 14px; color: #ffc107; }
+        #confirm-seat { background: linear-gradient(145deg, #e94560, #a13333); }
+        #backup-seat { background: linear-gradient(145deg, #533483, #392467); }
+        .main-seats { display: flex; justify-content: space-around; margin-bottom: 10px; }
+        .seat {
+            width: 90px; height: 90px; border-radius: 20px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-weight: bold; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; border: 3px solid transparent;
+        }
+        .seat .seat-letter { font-size: 38px; line-height: 1; }
+        .seat .seat-icon { font-size: 24px; }
+        .seat:hover { transform: scale(1.08); box-shadow: 0 0 25px var(--glow-color); }
+        #seat-a { background-color: #007bff; --glow-color: #007bff; }
+        #seat-b { background-color: #8A2BE2; --glow-color: #8A2BE2; }
+        #seat-c { background-color: #FFA500; --glow-color: #FFA500; }
+        .stats { display: flex; justify-content: space-around; background-color: #0f3460; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        
+        .controls { display: flex; justify-content: space-between; gap: 15px; }
+        .control-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 10px;
+            font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;
+        }
+        #undo-btn { background-color: #ffc107; color: #000; }
+        #clear-btn { background-color: #dc3545; color: #fff; }
+
+        /* Current history display */
+        .current-history {
+            background-color: #0f3460;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .current-history span {
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>SK 3Patti Hack 2.0</h1>
+        <div class="win-lose-counter">
+            <div class="counter">Win: <span id="win-count">0</span></div>
+            <div class="counter">Lose: <span id="lose-count">0</span></div>
+        </div>
+    </div>
+    <div class="prediction-seats">
+        <div id="confirm-seat" class="prediction-seat"></div>
+        <div id="backup-seat" class="prediction-seat"></div>
+    </div>
+    <p>5 پیٹرن داخل کریں، پھر اگلا نتیجہ:</p>
+    <div class="current-history">
+        موجودہ پیٹرن: <span id="current-pattern"></span> (<span id="pattern-count">0</span>/5)
+    </div>
+    <div class="main-seats">
+        <div id="seat-a" class="seat" onclick="addHistory('A')"><span class="seat-letter">A</span><span class="seat-icon">🪑</span></div>
+        <div id="seat-b" class="seat" onclick="addHistory('B')"><span class="seat-letter">B</span><span class="seat-icon">🪑</span></div>
+        <div id="seat-c" class="seat" onclick="addHistory('C')"><span class="seat-letter">C</span><span class="seat-icon">🪑</span></div>
+    </div>
+    <div class="stats">
+        <div>A: <span id="count-a">0</span></div>
+        <div>B: <span id="count-b">0</span></div>
+        <div>C: <span id="count-c">0</span></div>
+    </div>
+    
+    <div class="controls">
+        <button id="undo-btn" class="control-btn" onclick="undoLast()">Undo</button>
+        <button id="clear-btn" class="control-btn" onclick="clearAll()">Clear All</button>
+    </div>
+</div>
+<script>
+    let history = [];
+    let winCount = 0;
+    let loseCount = 0;
+    let currentPredictions = { confirm: null, backup: null }; // AI کی تازہ ترین پیش گوئی کو اسٹور کرنے کے لیے
+    const REQUIRED_HISTORY_FOR_AI = 5; 
+
+    function getAIPrediction(currentHistory) {
+        if (currentHistory.length !== REQUIRED_HISTORY_FOR_AI) {
+            return { confirm: null, backup: null }; 
+        }
+        
+        const counts = { A: 0, B: 0, C: 0 };
+        currentHistory.forEach(h => counts[h]++);
+
+        const sortedCounts = Object.entries(counts).sort((a, b) => a[1] - b[1]);
+
+        let confirmSeat = sortedCounts[0][0]; 
+        let backupSeat = sortedCounts[1][0]; 
+
+        if (sortedCounts[0][1] === sortedCounts[1][1] && sortedCounts[1][1] === sortedCounts[2][1]) {
+             const lastOutcome = currentHistory[currentHistory.length - 1];
+             if (lastOutcome === 'A') { confirmSeat = 'B'; backupSeat = 'C'; }
+             else if (lastOutcome === 'B') { confirmSeat = 'C'; backupSeat = 'A'; }
+             else { confirmSeat = 'A'; backupSeat = 'B'; }
+        }
+
+        return { 
+            confirm: { seat: confirmSeat, confidence: 100 }, 
+            backup: { seat: backupSeat, confidence: 90 } 
+        };
+    }
+
+    function addHistory(seat) {
+        if (history.length < REQUIRED_HISTORY_FOR_AI) {
+            // پہلے 5 پیٹرن کو ہسٹری میں شامل کریں۔
+            history.push(seat);
+            updateUI();
+            if (history.length === REQUIRED_HISTORY_FOR_AI) {
+                // جب 5 پیٹرن پورے ہو جائیں تو پیش گوئی کریں۔
+                currentPredictions = getAIPrediction([...history]); // AI کی پیش گوئی کو اسٹور کریں۔
+                showAIPredictionResult(currentPredictions);
+                alert("5 پیٹرن مکمل! اب اگلا نتیجہ (چھٹا پیٹرن) داخل کریں تاکہ AI کی پیش گوئی کو چیک کیا جا سکے۔");
+            } else {
+                showAILearningStatus(); 
+            }
+        } else if (history.length === REQUIRED_HISTORY_FOR_AI) {
+            // یہ چھٹی انٹری ہے جو AI کی پیش گوئی کو چیک کرے گی۔
+            
+            // Win/Lose کو چیک کریں۔
+            if (currentPredictions.confirm && (seat === currentPredictions.confirm.seat || seat === currentPredictions.backup.seat)) {
+                winCount++;
+                alert(`Win! AI نے ${currentPredictions.confirm.seat} یا ${currentPredictions.backup.seat} کی پیش گوئی کی تھی، اور آپ نے ${seat} داخل کیا ہے۔`);
+            } else {
+                loseCount++;
+                alert(`Lose! AI نے ${currentPredictions.confirm.seat} یا ${currentPredictions.backup.seat} کی پیش گوئی کی تھی، لیکن آپ نے ${seat} داخل کیا۔`);
+            }
+
+            // Win/Lose کے بعد، ہسٹری کو ری سیٹ کریں اور نئے سرے سے شروع کریں۔
+            clearAll(false); // Win/Lose کو صفر پر ری سیٹ نہ کریں
+            updateUI(); // UI کو اپ ڈیٹ کریں
+            currentPredictions = { confirm: null, backup: null }; // پچھلی پیش گوئی کو ری سیٹ کریں
+            showAILearningStatus(); // دوبارہ انتظار کا پیغام دکھائیں
+        }
+    }
+
+    function updatePredictions() {
+        // یہ فنکشن اب صرف UI اپ ڈیٹ کرتا ہے جب 5 پیٹرن پورے ہو جائیں۔
+        // असल प्रेडिक्शन और विन/लूज़ लॉजिक addHistory में चली गई है।
+    }
+
+    function showAILearningStatus() {
+        const confirmSeatDiv = document.getElementById('confirm-seat');
+        const backupSeatDiv = document.getElementById('backup-seat');
+        const statusMessage = "مزید پیٹرن کا انتظار کر رہا ہے...";
+        confirmSeatDiv.innerHTML = `<div class="ai-status">${statusMessage} (${history.length}/${REQUIRED_HISTORY_FOR_AI})</div>`;
+        backupSeatDiv.innerHTML = '';
+    }
+    
+    function showAIPredictionResult(result) {
+        const confirmSeatDiv = document.getElementById('confirm-seat');
+        const backupSeatDiv = document.getElementById('backup-seat');
+        if (result.confirm) {
+            confirmSeatDiv.innerHTML = `<div class="label">Confirm Seat</div><div class="seat-value">${result.confirm.seat}</div><div class="percentage">${result.confirm.confidence}%</div>`;
+            backupSeatDiv.innerHTML = `<div class="label">Backup Seat</div><div class="seat-value">${result.backup.seat}</div><div class="percentage">${result.backup.confidence}%</div>`;
+        } else {
+            showAILearningStatus();
+        }
+    }
+
+    function undoLast() {
+        if (history.length > 0) {
+            history.pop();
+            updateUI();
+            currentPredictions = { confirm: null, backup: null }; // Undo پر پیش گوئی ری سیٹ کریں
+            showAILearningStatus(); // Undo کے بعد انتظار کا پیغام دکھائیں
+        }
+    }
+
+    function clearAll(resetWinLose = true) {
+        history = []; 
+        if (resetWinLose) {
+            winCount = 0; 
+            loseCount = 0;
+        }
+        currentPredictions = { confirm: null, backup: null }; // پیش گوئی کو بھی ری سیٹ کریں
+        updateUI(); 
+        showAILearningStatus(); // شروع میں انتظار کا پیغام دکھائیں
+    }
+
+    function updateUI() {
+        document.getElementById('win-count').innerText = winCount;
+        document.getElementById('lose-count').innerText = loseCount;
+        
+        document.getElementById('pattern-count').innerText = history.length;
+        document.getElementById('current-pattern').innerText = history.join(', ');
+
+        const counts = { A: 0, B: 0, C: 0 };
+        history.forEach(s => counts[s]++);
+        document.getElementById('count-a').innerText = counts.A;
+        document.getElementById('count-b').innerText = counts.B;
+        document.getElementById('count-c').innerText = counts.C;
+    }
+    
+    // ابتدائی UI اپ ڈیٹ
+    clearAll();
+</script>
+
+</body>
+</html>
